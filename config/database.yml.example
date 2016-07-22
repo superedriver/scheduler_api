@@ -1,0 +1,30 @@
+development:
+  adapter: postgresql
+  host: localhost
+  port: 5432
+  username: USER_NAME
+  password: USER_PASSWORD
+  database: scheduler_dev
+  schema_search_path: public
+  encoding: utf8
+
+
+test:
+  adapter: postgresql
+  host: localhost
+  port: 5432
+  username: USER_NAME
+  password: USER_PASSWORD
+  database: scheduler_test
+  schema_search_path: public
+  encoding: utf8
+
+production:
+  adapter: postgresql
+  host: localhost
+  port: 5432
+  username: USER_NAME
+  password: USER_PASSWORD
+  database: scheduler_prod
+  schema_search_path: public
+  encoding: utf8
