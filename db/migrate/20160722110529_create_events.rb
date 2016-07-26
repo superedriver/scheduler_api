@@ -5,7 +5,7 @@ class CreateEvents < ActiveRecord::Migration[5.0]
       t.string :description
       t.datetime :date_start
       t.datetime :date_finish
-      t.integer :assosiate
+      t.integer :associate
 
       t.timestamps
     end

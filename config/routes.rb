@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  constraints subdomain: 'api' do
+  # constraints subdomain: 'api' do
     scope module: 'api' do
       namespace :v1 do
         resources :users do
@@ -7,6 +7,6 @@ Rails.application.routes.draw do
         end
       end
     end
-  end
+  # end
  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end

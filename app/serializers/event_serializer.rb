@@ -1,5 +1,3 @@
 class EventSerializer < ActiveModel::Serializer
-  attributes :name, :description, :date_start, :date_finish, :assosiate
-
-  belongs_to :user
+  attributes :id, :name, :description, :date_start, :date_finish, :assosiate
 end

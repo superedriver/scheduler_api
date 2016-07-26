@@ -1,31 +1,31 @@
 module Api::V1
   class UsersController < ApplicationController
     before_action :set_user, only: [:show, :update, :destroy]
-
-    # GET /users
+    skip_before_action :authenticate, only: [:create]
+    # GET /v1/users
     def index
       @users = User.all
 
       render json: @users
     end
 
-    # GET /users/1
+    # GET /v1/users/1
     def show
       render json: @user
     end
 
-    # POST /users
+    # POST /v1/users
     def create
       @user = User.new(user_params)
 
       if @user.save
-        render json: @user, status: :created, location: @user
+        render json: @user, status: :created, location: v1_user_path(@user)
       else
         render json: @user.errors, status: :unprocessable_entity
       end
     end
 
-    # PATCH/PUT /users/1
+    # PATCH/PUT /v1/users/1
     def update
       if @user.update(user_params)
         render json: @user
@@ -34,15 +34,20 @@ module Api::V1
       end
     end
 
-    # DELETE /users/1
+    # DELETE /v1/users/1
     def destroy
       @user.destroy
+      render json: "Successfully destroyed"
     end
 
     private
       # Use callbacks to share common setup or constraints between actions.
       def set_user
-        @user = User.find(params[:id])
+        @user = User.find_by(id: params[:id])
+
+        unless @user
+          render json: "User not found", status: 404
+        end
       end
 
       # Only allow a trusted parameter "white list" through.
