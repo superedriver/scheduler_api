@@ -21,6 +21,6 @@ class ApplicationController < ActionController::API
 
   def render_unauthorized(realm = "Application")
     self.headers["WWW-Authenticate"] = %(Token realm="#{realm.gsub(/"/, "")}")
-    render json: I18n.t("errors.non_authorized"), status: :unauthorized
+    render json: I18n.t("errors.user.non_authorized"), status: :unauthorized
   end
 end

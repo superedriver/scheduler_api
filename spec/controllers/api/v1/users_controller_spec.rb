@@ -17,7 +17,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
 
         process action, verb, id: user.id
         expect(response).to have_http_status(401)
-        expect(response.body).to eq(I18n.t("errors.non_authorized"))
+        expect(response.body).to eq(I18n.t("errors.user.non_authorized"))
       end
     end
   end
@@ -45,7 +45,10 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       request.headers["Authorization"] = "Token token=#{user.api_key}"
       get :show, params: {id: user.id}
 
+      body = JSON.parse(response.body)
+
       expect(response).to have_http_status(200)
+      expect(body["email"]).to eq(user.email)
     end
 
     it "return 404 if user not exist" do
@@ -54,7 +57,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       get :show, params: {id: 0}
 
       expect(response).to have_http_status(404)
-      expect(response.body).to eq("User not found")
+      expect(response.body).to eq(I18n.t("errors.user.not_found"))
     end
   end
 
@@ -226,7 +229,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       request.headers["Authorization"] = "Token token=#{user.api_key}"
       delete :destroy, params: {id: user.id}
 
-      expect(response.body).to eq("Successfully destroyed")
+      expect(response.body).to eq(I18n.t("confirms.user.success_destroyed"))
     end
   end
 end

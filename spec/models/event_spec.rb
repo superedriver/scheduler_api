@@ -23,7 +23,7 @@ RSpec.describe Event, type: :model do
           description: "Meeting with Projector",
           date_start: nil,
           date_finish: "2016-07-22 14:05:29",
-          assosiate: 1
+          associate: 1
         )
         event.valid?
         expect(event.errors.messages[:date_start].length).to eq(1)
@@ -40,7 +40,7 @@ RSpec.describe Event, type: :model do
           description: "Meeting with Projector",
           date_start: "2016-07-22 14:05:29",
           date_finish: nil,
-          assosiate: 1
+          associate: 1
         )
         event.valid?
         expect(event.errors.messages[:date_finish].length).to eq(1)
@@ -57,7 +57,7 @@ RSpec.describe Event, type: :model do
           description: "Meeting with Projector",
           date_start: "2016-07-22 14:05:29",
           date_finish: "2016-07-22 15:05:29",
-          assosiate: 1,
+          associate: 1,
           user_id: nil
         )
         event.valid?

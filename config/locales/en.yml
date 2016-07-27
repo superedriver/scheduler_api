@@ -17,4 +17,13 @@ en:
             user_id:
               blank: "The event has not got the user!"
   errors:
-    non_authorized: "User is not authorized!"
+    user:
+      non_authorized: "User is not authorized!"
+      not_found: "User not found!"
+    event:
+      not_found: "Event not found!"
+  confirms:
+    user:
+      success_destroyed: "User successfully destroyed!"
+    event:
+      success_destroyed: "Event successfully destroyed!"

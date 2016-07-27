@@ -38,7 +38,7 @@ module Api::V1
     # DELETE /v1/events/1
     def destroy
       @event.destroy
-      render json: "Successfully destroyed"
+      render json: I18n.t("confirms.event.success_destroyed")
     end
 
     private
@@ -47,13 +47,13 @@ module Api::V1
         @event = Event.find_by(id: params[:id])
 
         unless @event
-          render json: "Event not found", status: 404
+          render json: I18n.t("errors.event.not_found"), status: 404
         end
       end
 
       # Only allow a trusted parameter "white list" through.
       def event_params
-        params.require(:event).permit(:name, :description, :date_start, :date_finish, :assosiate, :user_id)
+        params.require(:event).permit(:name, :description, :date_start, :date_finish, :associate, :user_id)
       end
   end
 end

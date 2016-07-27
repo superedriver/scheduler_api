@@ -37,7 +37,7 @@ module Api::V1
     # DELETE /v1/users/1
     def destroy
       @user.destroy
-      render json: "Successfully destroyed"
+      render json: I18n.t("confirms.user.success_destroyed")
     end
 
     private
@@ -46,7 +46,7 @@ module Api::V1
         @user = User.find_by(id: params[:id])
 
         unless @user
-          render json: "User not found", status: 404
+          render json: I18n.t("errors.user.not_found"), status: 404
         end
       end
 
