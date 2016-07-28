@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  has_secure_password
   EMAIL_REGEXP = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
   has_many :events, dependent: :destroy
 
@@ -6,16 +7,7 @@ class User < ApplicationRecord
                   uniqueness: { case_sensitive: false },
                   format: { with: EMAIL_REGEXP }
 
-  # Assign an API key on create
-  before_create do |user|
-    user.api_key = user.generate_api_key
-  end
-
-  # Generate a unique API key
-  def generate_api_key
-    loop do
-      token = SecureRandom.base64.tr('+/=', 'Qrt')
-      break token unless User.exists?(api_key: token)
-    end
-  end
+  validates :password, length: { minimum: 3 }, if: -> { new_record? || changes["password"] }
+  validates :password, confirmation: true, if: -> { new_record? || changes["password"] }
+  validates :password_confirmation, presence: true, if: -> { new_record? || changes["password"] }
 end

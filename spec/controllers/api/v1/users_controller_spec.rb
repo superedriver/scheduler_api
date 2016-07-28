@@ -1,75 +1,54 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe Api::V1::UsersController, type: :controller do
-  before(:each) { request.headers['Content-Type'] = "application/json" }
 
-  def self.returns_401_when_token_not_transmitted(*actions)
+  def self.returns_401_when_not_authorized(*actions)
     actions.each do |action|
-      it "#{action} returns 401 when token not transmitted" do
-        user = create(:user)
+      it "#{action} returns 401 when when not authorized" do
         verb = if action == :update
-          "PATCH"
-        elsif action == :destroy
-          "DELETE"
-        else
-          "GET"
-        end
+                 "PATCH"
+               elsif action == :destroy
+                 "DELETE"
+               else
+                 "GET"
+               end
 
-        process action, verb, id: user.id
+        process action, verb
         expect(response).to have_http_status(401)
         expect(response.body).to eq(I18n.t("errors.user.non_authorized"))
       end
     end
   end
 
-  returns_401_when_token_not_transmitted :index, :show, :update, :destroy
-
-  describe "GET #index" do
-    it "return users if they exist" do
-      user1 = create(:user)
-      user2 = create(:user)
-      request.headers["Authorization"] = "Token token=#{user1.api_key}"
-      get :index
-
-      body = JSON.parse(response.body)
-
-      expect(body.length).to eql(2)
-      expect(body[0]["email"]).to eq(user1.email)
-      expect(body[1]["email"]).to eq(user2.email)
-    end
-  end
+  returns_401_when_not_authorized :show, :update, :destroy
 
   describe "GET #show" do
     it "return user if user exist" do
       user = create(:user)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
-      get :show, params: {id: user.id}
+      session[:user_id] = user.id
+      get :show
 
       body = JSON.parse(response.body)
 
       expect(response).to have_http_status(200)
       expect(body["email"]).to eq(user.email)
-    end
-
-    it "return 404 if user not exist" do
-      user = create(:user)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
-      get :show, params: {id: 0}
-
-      expect(response).to have_http_status(404)
-      expect(response.body).to eq(I18n.t("errors.user.not_found"))
+      expect(body["name"]).to eq(user.name)
     end
   end
 
-  describe "POST #create" do
+  describe "POST #create /registration" do
     context "with valid params" do
       it "creates a new User" do
         user = build(:user)
 
         expect {
           post :create, params: {
-            name: user.name,
-            email: user.email
+            user: {
+              name: user.name,
+              email: user.email,
+              password: user.password,
+              password_confirmation: user.password
+            }
           }
         }.to change(User, :count).by(1)
       end
@@ -77,8 +56,12 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       it "returns created user after creation" do
         user = build(:user)
         post :create, params: {
-          name: user.name,
-          email: user.email
+          user: {
+            name: user.name,
+            email: user.email,
+            password: user.password,
+            password_confirmation: user.password
+          }
         }
         body = JSON.parse(response.body)
 
@@ -87,42 +70,126 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       end
     end
 
-    context "with invalid params" do
-      it "non-unique email" do
+    context "smb is logged in" do
+      it "returns 403 status and message" do
         user1 = create(:user)
+        session[:user_id] = user1.id
+        user2 = build(:user)
 
         post :create, params: {
-          name: user1.name,
-          email: user1.email
+          user: {
+            name: user2.name,
+            email: user2.email,
+            password: user2.password,
+            password_confirmation: user2.password
+          }
         }
-        body = JSON.parse(response.body)
 
-        expect(body["email"][0]).to eq(
-          I18n.t("activerecord.errors.models.user.attributes.email.taken")
-        )
+        expect(response).to have_http_status(403)
+        expect(response.body).to eq(I18n.t("errors.user.login"))
+      end
+    end
+
+    context "with invalid params" do
+      context "#email" do
+        it "non-unique" do
+          user1 = create(:user)
+
+          post :create, params: {
+            user: {
+              name: user1.name,
+              email: user1.email,
+              password: user1.password,
+              password_confirmation: user1.password
+            }
+          }
+          body = JSON.parse(response.body)
+
+          expect(body["email"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.email.taken")
+          )
+        end
+
+        it "blank" do
+          user1 = build(:user)
+          post :create, params: {
+            user: {
+              name: user1.name,
+              password: user1.password,
+              password_confirmation: user1.password
+            }
+          }
+          body = JSON.parse(response.body)
+
+          expect(body["email"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.email.blank")
+          )
+        end
+
+        it "invalid format" do
+          post :create, params: {
+            user: {
+              name: "John Doe",
+              email: "email",
+              password: "password",
+              password_confirmation: "password"
+            }
+          }
+          body = JSON.parse(response.body)
+
+          expect(body["email"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.email.invalid")
+          )
+        end
       end
 
-      it "blank email" do
-        post :create, params: {
-          name: "John Doe"
-        }
-        body = JSON.parse(response.body)
+      context "#password" do
+        it "blank password" do
+          user1 = build(:user)
+          post :create, params: {
+            user: {
+              name: user1.name,
+              email: user1.email,
+              password_confirmation: user1.password
+            }
+          }
+          body = JSON.parse(response.body)
 
-        expect(body["email"][0]).to eq(
-          I18n.t("activerecord.errors.models.user.attributes.email.blank")
-        )
-      end
+          expect(body["password"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.password.blank")
+          )
+        end
 
-      it "invalid email format" do
-        post :create, params: {
-          name: "John Doe",
-          email: "email"
-        }
-        body = JSON.parse(response.body)
+        it "blank password_confirmation" do
+          user1 = build(:user)
+          post :create, params: {
+            user: {
+              name: user1.name,
+              email: user1.email,
+              password: user1.password
+            }
+          }
+          body = JSON.parse(response.body)
 
-        expect(body["email"][0]).to eq(
-          I18n.t("activerecord.errors.models.user.attributes.email.invalid")
-        )
+          expect(body["password_confirmation"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.password_confirmation.blank"))
+        end
+
+        it "password != password_confirmation" do
+          user1 = build(:user)
+          post :create, params: {
+            user: {
+              name: user1.name,
+              email: user1.email,
+              password: "qwerty",
+              password_confirmation: "qwerty_qwerty"
+            }
+          }
+          body = JSON.parse(response.body)
+
+          expect(body["password_confirmation"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.password_confirmation.confirmation"))
+        end
       end
     end
   end
@@ -132,13 +199,14 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       it "updates the requested user" do
         new_name = "New Name"
         user = create(:user)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
+
         put :update, params: {
-            id: user.id,
+          user: {
             name: new_name
+          }
         }
         user.reload
-
         expect(user.name).to eq(new_name)
       end
 
@@ -146,11 +214,13 @@ RSpec.describe Api::V1::UsersController, type: :controller do
         new_name = "New Name"
         new_email = "email@email.email"
         user = create(:user)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
+
         put :update, params: {
-            id: user.id,
+          user: {
             name: new_name,
-            email: new_email,
+            email: new_email
+          }
         }
         body = JSON.parse(response.body)
 
@@ -161,47 +231,55 @@ RSpec.describe Api::V1::UsersController, type: :controller do
     end
 
     context "with invalid params" do
-      it "non-unique email" do
-        user = create(:user)
-        another_user = create(:user)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
-        put :update, params: {
-            id: user.id,
-            email: another_user.email
-        }
-        body = JSON.parse(response.body)
+      context "#email" do
+        it "non-unique" do
+          user1 = create(:user)
+          user2 = create(:user)
+          session[:user_id] = user1.id
 
-        expect(body["email"][0]).to eq(
-          I18n.t("activerecord.errors.models.user.attributes.email.taken")
-        )
-      end
+          put :update, params: {
+            user: {
+              email: user2.email
+            }
+          }
+          body = JSON.parse(response.body)
 
-      it "blank email" do
-        user = create(:user)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
-        put :update, params: {
-            id: user.id,
-            email: nil
-        }
-        body = JSON.parse(response.body)
+          expect(body["email"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.email.taken")
+          )
+        end
 
-        expect(body["email"][0]).to eq(
-          I18n.t("activerecord.errors.models.user.attributes.email.blank")
-        )
-      end
+        it "blank" do
+          user1 = create(:user)
+          session[:user_id] = user1.id
 
-      it "invalid email format" do
-        user = create(:user)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
-        put :update, params: {
-            id: user.id,
-            email: "email"
-        }
-        body = JSON.parse(response.body)
+          put :update, params: {
+            user: {
+              email: nil
+            }
+          }
+          body = JSON.parse(response.body)
 
-        expect(body["email"][0]).to eq(
-          I18n.t("activerecord.errors.models.user.attributes.email.invalid")
-        )
+          expect(body["email"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.email.blank")
+          )
+        end
+
+        it "invalid format" do
+          user1 = create(:user)
+          session[:user_id] = user1.id
+
+          put :update, params: {
+            user: {
+              email: "invalid_format"
+            }
+          }
+          body = JSON.parse(response.body)
+
+          expect(body["email"][0]).to eq(
+            I18n.t("activerecord.errors.models.user.attributes.email.invalid")
+          )
+        end
       end
     end
   end
@@ -209,26 +287,19 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   describe "DELETE #destroy" do
     it "destroys the requested user" do
       user = create(:user)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
+      session[:user_id] = user.id
 
       expect {
-        delete :destroy, params: {id: user.id}
+        delete :destroy
       }.to change(User, :count).by(-1)
     end
 
-    it "returnes 200 status" do
+    it "returnes 200 status with message" do
       user = create(:user)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
-      delete :destroy, params: {id: user.id}
+      session[:user_id] = user.id
+      delete :destroy
 
       expect(response.status).to eq(200)
-    end
-
-    it "returns success message" do
-      user = create(:user)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
-      delete :destroy, params: {id: user.id}
-
       expect(response.body).to eq(I18n.t("confirms.user.success_destroyed"))
     end
   end

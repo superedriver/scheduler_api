@@ -4,27 +4,28 @@ RSpec.describe Api::V1::EventsController, type: :controller do
 
   before(:each) { request.headers['Content-Type'] = "application/json" }
 
-  # def self.returns_401_when_token_not_transmitted(*actions)
-  #   actions.each do |action|
-  #     it "#{action} returns 401 when token not transmitted" do
-  #       event = create(:event)
-  #       verb = if action == :update
-  #         "PATCH"
-  #       elsif action == :destroy
-  #         "DELETE"
-  #       elsif action == :create
-  #         "POST"
-  #       else
-  #         "GET"
-  #       end
+  def self.returns_401_when_not_authorizedd(*actions)
+    actions.each do |action|
+      it "#{action} returns 401 when not authorized" do
+        event = create(:event)
+        verb = if action == :update
+                 "PATCH"
+               elsif action == :destroy
+                 "DELETE"
+               elsif action == :create
+                 "POST"
+               else
+                 "GET"
+               end
 
-  #       process action, verb, id: event.id
-  #       expect(response).to have_http_status(401)
-  #       expect(response.body).to eq(I18n.t("errors.non_authorized"))
-  #     end
-  #   end
-  # end
-  # returns_401_when_token_not_transmitted :index, :show, :update, :destroy, :create
+        session[:user_id] = nil
+        process action, verb, id: event.id
+        expect(response).to have_http_status(401)
+        expect(response.body).to eq(I18n.t("errors.user.non_authorized"))
+      end
+    end
+  end
+  returns_401_when_not_authorizedd :index, :show, :update, :destroy, :create
 
   describe "GET #index" do
     it "return events if they exist" do
@@ -37,8 +38,8 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         name: "Event2",
         user_id: user.id
       )
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
-      get :index, user_id: user.id
+      session[:user_id] = user.id
+      get :index
 
       body = JSON.parse(response.body)
 
@@ -55,10 +56,9 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         name: "Event1",
         user_id: user.id
       )
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
+      session[:user_id] = user.id
       get :show, params: {
-        id: event.id,
-        user_id: user.id
+        id: event.id
       }
 
       body = JSON.parse(response.body)
@@ -70,10 +70,9 @@ RSpec.describe Api::V1::EventsController, type: :controller do
     it "return 404 if event not exist" do
       user = create(:user)
 
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
+      session[:user_id] = user.id
       get :show, params: {
-        id: 0,
-        user_id: user.id
+        id: 0
       }
 
       expect(response).to have_http_status(404)
@@ -87,10 +86,9 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         user = create(:user)
         event = build(:event)
 
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
         expect {
           post :create, params: {
-            user_id: user.id,
             date_start: event.date_start,
             date_finish: event.date_finish
           }
@@ -106,7 +104,7 @@ RSpec.describe Api::V1::EventsController, type: :controller do
           name: name,
           description: description
         )
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
 
         post :create, params: {
           user_id: user.id,
@@ -127,10 +125,9 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       it "blank date_start" do
         user = create(:user)
         event = build(:event)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
 
         post :create, params: {
-          user_id: user.id,
           date_start: nil,
           date_finish: event.date_finish
         }
@@ -145,10 +142,9 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       it "blank date_finish" do
         user = create(:user)
         event = build(:event)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
 
         post :create, params: {
-          user_id: user.id,
           date_start: event.date_start,
           date_finish: nil
         }
@@ -159,20 +155,6 @@ RSpec.describe Api::V1::EventsController, type: :controller do
           I18n.t("activerecord.errors.models.event.attributes.date_finish.blank")
         )
       end
-
-      it "blank user_id" do
-        user = create(:user)
-        event = build(:event)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
-
-        expect {
-          post :create, params: {
-            user_id: nil,
-            date_start: event.date_start,
-            date_finish: event.date_finish
-          }
-        }.to raise_error(ActionController::UrlGenerationError)
-      end
     end
   end
 
@@ -182,10 +164,9 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         new_name = "New Name"
         user = create(:user)
         event = create(:event, user_id: user.id)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
 
         put :update, params: {
-          user_id: user.id,
           id: event.id,
           name: new_name
         }
@@ -200,9 +181,8 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       new_description = "new Description"
       user = create(:user)
       event = create(:event, user_id: user.id)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
+      session[:user_id] = user.id
       put :update, params: {
-          user_id: user.id,
           id: event.id,
           name: new_name,
           description: new_description
@@ -218,11 +198,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       it "blank date_start" do
         user = create(:user)
         event = create(:event, user_id: user.id)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
 
         put :update, params: {
           id: event.id,
-          user_id: user.id,
           date_start: nil
         }
 
@@ -236,7 +215,7 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       it "blank date_finish" do
         user = create(:user)
         event = create(:event, user_id: user.id)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
+        session[:user_id] = user.id
 
         put :update, params: {
           id: event.id,
@@ -250,19 +229,6 @@ RSpec.describe Api::V1::EventsController, type: :controller do
           I18n.t("activerecord.errors.models.event.attributes.date_finish.blank")
         )
       end
-
-      it "blank user_id" do
-        user = create(:user)
-        event = create(:event, user_id: user.id)
-        request.headers["Authorization"] = "Token token=#{user.api_key}"
-
-        expect {
-          put :update, params: {
-            id: event.id,
-            user_id: nil
-          }
-        }.to raise_error(ActionController::UrlGenerationError)
-      end
     end
   end
 
@@ -270,39 +236,25 @@ RSpec.describe Api::V1::EventsController, type: :controller do
     it "destroys the requested user" do
       user = create(:user)
       event = create(:event, user_id: user.id)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
+      session[:user_id] = user.id
 
       expect {
         delete :destroy, params: {
-          id: event.id,
-          user_id: user.id
+          id: event.id
         }
       }.to change(Event, :count).by(-1)
     end
 
-    it "returnes 200 status" do
+    it "returnes 200 status with message" do
       user = create(:user)
       event = create(:event, user_id: user.id)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
+      session[:user_id] = user.id
 
       delete :destroy, params: {
-        id: event.id,
-        user_id: user.id
+        id: event.id
       }
 
       expect(response.status).to eq(200)
-    end
-
-    it "returns success message" do
-      user = create(:user)
-      event = create(:event, user_id: user.id)
-      request.headers["Authorization"] = "Token token=#{user.api_key}"
-
-      delete :destroy, params: {
-        id: event.id,
-        user_id: user.id
-      }
-
       expect(response.body).to eq(I18n.t("confirms.event.success_destroyed"))
     end
   end

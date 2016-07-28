@@ -8,6 +8,11 @@ en:
               invalid: "Invalid Email format!"
               blank: "Fill in 'Email' field!"
               taken: "User with this email already exists!"
+            password:
+              blank: "Fill in 'Password' field!"
+            password_confirmation:
+              blank: "Fill in 'Password_confirmation' field!"
+              confirmation: "Passwords do not match!"
         event:
           attributes:
             date_start:
@@ -20,10 +25,15 @@ en:
     user:
       non_authorized: "User is not authorized!"
       not_found: "User not found!"
+      wrong_credentials: "Wrong email or password!"
+      logout: "You have to login first!"
+      login: "You have to logout first!"
     event:
       not_found: "Event not found!"
   confirms:
     user:
       success_destroyed: "User successfully destroyed!"
+      logged_out: "User sussefully logged out!"
+      logged_in: "User sussefully logged in!"
     event:
       success_destroyed: "Event successfully destroyed!"

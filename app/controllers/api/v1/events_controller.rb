@@ -4,7 +4,7 @@ module Api::V1
 
     # GET /v1/events
     def index
-      @events = Event.all
+      @events = current_user.events
 
       render json: @events
     end
@@ -16,11 +16,10 @@ module Api::V1
 
     # POST /v1/events
     def create
-      @user = User.find_by(id: params[:user_id])
+      @user = current_user
       @event = @user.events.new(event_params)
-
       if @event.save
-        render json: @event, status: :created, location: v1_user_event_path(@user, @event)
+        render json: @event, status: :created, location: v1_event_path(@event)
       else
         render json: @event.errors, status: :unprocessable_entity
       end

@@ -1,26 +1,16 @@
 class ApplicationController < ActionController::API
+  # Prevent CSRF attacks by raising an exception.
+  # For APIs, you may want to use :null_session instead.
+  # protect_from_forgery with: :null_session
+
   include ActionController::HttpAuthentication::Token::ControllerMethods
+  before_action :authorize
 
-  # Add a before_action to authenticate all requests.
-  # Move this to subclassed controllers if you only
-  # want to authenticate certain methods.
-  before_action :authenticate
-
-  protected
-
-  # Authenticate the user with token based authentication
-  def authenticate
-    authenticate_token || render_unauthorized
+  def current_user
+    @current_user ||= User.find(session[:user_id]) if session[:user_id]
   end
 
-  def authenticate_token
-    authenticate_with_http_token do |token, options|
-      @current_user = User.find_by(api_key: token)
-    end
-  end
-
-  def render_unauthorized(realm = "Application")
-    self.headers["WWW-Authenticate"] = %(Token realm="#{realm.gsub(/"/, "")}")
-    render json: I18n.t("errors.user.non_authorized"), status: :unauthorized
+  def authorize
+    render json: I18n.t("errors.user.non_authorized"), status: 401 unless current_user
   end
 end
