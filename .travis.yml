@@ -1,3 +1,6 @@
+addons:
+    code_climate:
+        repo_token: d8d433e4a58a82bdb4870ac60165774fbb184b3be5ada6edfabe5991076ee715
 language: ruby
 sudo: required
 rvm:

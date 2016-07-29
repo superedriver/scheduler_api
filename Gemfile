@@ -29,3 +29,5 @@ gem 'active_model_serializers', '~> 0.10.0'
 gem 'rack-cors', '~> 0.4.0'
 gem 'rack-attack', '~> 4.4', '>= 4.4.1'
 gem 'bcrypt', '~> 3.1', '>= 3.1.11'
+
+gem "codeclimate-test-reporter", group: :test, require: nil
