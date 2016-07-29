@@ -4,7 +4,7 @@ RSpec.describe Api::V1::EventsController, type: :controller do
 
   before(:each) { request.headers['Content-Type'] = "application/json" }
 
-  def self.returns_401_when_not_authorizedd(*actions)
+  def self.returns_401_when_not_authorized(*actions)
     actions.each do |action|
       it "#{action} returns 401 when not authorized" do
         event = create(:event)
@@ -25,7 +25,7 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       end
     end
   end
-  returns_401_when_not_authorizedd :index, :show, :update, :destroy, :create
+  returns_401_when_not_authorized :index, :show, :update, :destroy, :create
 
   describe "GET #index" do
     it "return events if they exist" do

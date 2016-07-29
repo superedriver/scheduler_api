@@ -203,7 +203,9 @@ RSpec.describe Api::V1::UsersController, type: :controller do
 
         put :update, params: {
           user: {
-            name: new_name
+            name: new_name,
+            password: "qwert",
+            password_confirmation: "qwert"
           }
         }
         user.reload
@@ -219,7 +221,9 @@ RSpec.describe Api::V1::UsersController, type: :controller do
         put :update, params: {
           user: {
             name: new_name,
-            email: new_email
+            email: new_email,
+            password: "qwert",
+            password_confirmation: "qwert"
           }
         }
         body = JSON.parse(response.body)

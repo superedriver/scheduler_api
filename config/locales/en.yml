@@ -10,6 +10,7 @@ en:
               taken: "User with this email already exists!"
             password:
               blank: "Fill in 'Password' field!"
+              too_short: "The password must contain more than 3 characters!"
             password_confirmation:
               blank: "Fill in 'Password_confirmation' field!"
               confirmation: "Passwords do not match!"
