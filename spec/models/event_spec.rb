@@ -73,7 +73,7 @@ RSpec.describe Event, type: :model do
           event.valid?
           expect(event.errors.messages[:date_start].length).to eq(1)
           expect(event.errors.messages[:date_start][0]).
-              to eq(I18n.t("activerecord.errors.models.event.attributes.date_start.blank"))
+            to eq(I18n.t("activerecord.errors.models.event.attributes.date_start.blank"))
         end
       end
 
@@ -84,7 +84,7 @@ RSpec.describe Event, type: :model do
           event.valid?
           expect(event.errors.messages[:date_finish].length).to eq(1)
           expect(event.errors.messages[:date_finish][0]).
-              to eq(I18n.t("activerecord.errors.models.event.attributes.date_finish.blank"))
+            to eq(I18n.t("activerecord.errors.models.event.attributes.date_finish.blank"))
         end
       end
 
@@ -95,7 +95,7 @@ RSpec.describe Event, type: :model do
           event.valid?
           expect(event.errors.messages[:user_id].length).to eq(1)
           expect(event.errors.messages[:user_id][0]).
-              to eq(I18n.t("activerecord.errors.models.event.attributes.user_id.blank"))
+            to eq(I18n.t("activerecord.errors.models.event.attributes.user_id.blank"))
         end
       end
     end
