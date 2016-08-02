@@ -10,6 +10,21 @@ RSpec.describe User, type: :model do
   it { expect respond_to(:updated_at) }
   it { expect respond_to(:events) }
   it { expect respond_to(:password_digest) }
+  it { expect respond_to(:token) }
+
+  describe "#create token" do
+    it "not saved user hasn't got token" do
+      user = build(:user)
+
+      expect(user.token).to be_nil
+    end
+
+    it "saved user has token" do
+      user = build(:user)
+      user.save
+      expect(user.token).not_to be_nil
+    end
+  end
 
   describe "validations" do
     describe "create user" do

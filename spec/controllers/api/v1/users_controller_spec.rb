@@ -25,8 +25,9 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   describe "GET #show" do
     it "return user if user exist" do
       user = create(:user)
-      session[:user_id] = user.id
-      get :show
+      get :show, params: {
+          token: user.token
+      }
 
       body = JSON.parse(response.body)
 
@@ -67,26 +68,6 @@ RSpec.describe Api::V1::UsersController, type: :controller do
 
         expect(body["email"]).to eq(user.email)
         expect(body["name"]).to eq(user.name)
-      end
-    end
-
-    context "smb is logged in" do
-      it "returns 403 status and message" do
-        user1 = create(:user)
-        session[:user_id] = user1.id
-        user2 = build(:user)
-
-        post :create, params: {
-          user: {
-            name: user2.name,
-            email: user2.email,
-            password: user2.password,
-            password_confirmation: user2.password
-          }
-        }
-
-        expect(response).to have_http_status(403)
-        expect(response.body).to eq(I18n.t("errors.user.login"))
       end
     end
 
@@ -199,14 +180,14 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       it "updates the requested user" do
         new_name = "New Name"
         user = create(:user)
-        session[:user_id] = user.id
 
         put :update, params: {
           user: {
             name: new_name,
             password: "qwert",
-            password_confirmation: "qwert"
-          }
+            password_confirmation: "qwert",
+          },
+          token: user.token
         }
         user.reload
         expect(user.name).to eq(new_name)
@@ -216,7 +197,6 @@ RSpec.describe Api::V1::UsersController, type: :controller do
         new_name = "New Name"
         new_email = "email@email.email"
         user = create(:user)
-        session[:user_id] = user.id
 
         put :update, params: {
           user: {
@@ -224,7 +204,8 @@ RSpec.describe Api::V1::UsersController, type: :controller do
             email: new_email,
             password: "qwert",
             password_confirmation: "qwert"
-          }
+          },
+          token: user.token
         }
         body = JSON.parse(response.body)
 
@@ -239,12 +220,12 @@ RSpec.describe Api::V1::UsersController, type: :controller do
         it "non-unique" do
           user1 = create(:user)
           user2 = create(:user)
-          session[:user_id] = user1.id
 
           put :update, params: {
             user: {
-              email: user2.email
-            }
+              email: user1.email
+            },
+            token: user2.token
           }
           body = JSON.parse(response.body)
 
@@ -254,13 +235,13 @@ RSpec.describe Api::V1::UsersController, type: :controller do
         end
 
         it "blank" do
-          user1 = create(:user)
-          session[:user_id] = user1.id
+          user = create(:user)
 
           put :update, params: {
             user: {
               email: nil
-            }
+            },
+            token: user.token
           }
           body = JSON.parse(response.body)
 
@@ -270,13 +251,13 @@ RSpec.describe Api::V1::UsersController, type: :controller do
         end
 
         it "invalid format" do
-          user1 = create(:user)
-          session[:user_id] = user1.id
+          user = create(:user)
 
           put :update, params: {
             user: {
               email: "invalid_format"
-            }
+            },
+            token: user.token
           }
           body = JSON.parse(response.body)
 
@@ -291,17 +272,20 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   describe "DELETE #destroy" do
     it "destroys the requested user" do
       user = create(:user)
-      session[:user_id] = user.id
 
       expect {
-        delete :destroy
+        delete :destroy, params: {
+            token: user.token
+        }
       }.to change(User, :count).by(-1)
     end
 
     it "returnes 200 status with message" do
       user = create(:user)
-      session[:user_id] = user.id
-      delete :destroy
+
+      delete :destroy, params: {
+          token: user.token
+      }
 
       expect(response.status).to eq(200)
       expect(response.body).to eq(I18n.t("confirms.user.success_destroyed"))

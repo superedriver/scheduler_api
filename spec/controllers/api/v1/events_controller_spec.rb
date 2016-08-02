@@ -18,7 +18,6 @@ RSpec.describe Api::V1::EventsController, type: :controller do
                  "GET"
                end
 
-        session[:user_id] = nil
         process action, verb, id: event.id
         expect(response).to have_http_status(401)
         expect(response.body).to eq(I18n.t("errors.user.non_authorized"))
@@ -38,8 +37,8 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         name: "Event2",
         user_id: user.id
       )
-      session[:user_id] = user.id
-      get :index
+
+      get :index, params: { token: user.token }
 
       body = JSON.parse(response.body)
 
@@ -56,9 +55,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         name: "Event1",
         user_id: user.id
       )
-      session[:user_id] = user.id
+
       get :show, params: {
-        id: event.id
+        id: event.id,
+        token: user.token
       }
 
       body = JSON.parse(response.body)
@@ -70,9 +70,9 @@ RSpec.describe Api::V1::EventsController, type: :controller do
     it "return 404 if event not exist" do
       user = create(:user)
 
-      session[:user_id] = user.id
       get :show, params: {
-        id: 0
+        id: 0,
+        token: user.token
       }
 
       expect(response).to have_http_status(404)
@@ -86,11 +86,11 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         user = create(:user)
         event = build(:event)
 
-        session[:user_id] = user.id
         expect {
           post :create, params: {
             date_start: event.date_start,
-            date_finish: event.date_finish
+            date_finish: event.date_finish,
+            token: user.token
           }
         }.to change(Event, :count).by(1)
       end
@@ -104,14 +104,13 @@ RSpec.describe Api::V1::EventsController, type: :controller do
           name: name,
           description: description
         )
-        session[:user_id] = user.id
 
         post :create, params: {
-          user_id: user.id,
           name: event.name,
           description: event.description,
           date_start: event.date_start,
-          date_finish: event.date_finish
+          date_finish: event.date_finish,
+          token: user.token
         }
 
         body = JSON.parse(response.body)
@@ -125,11 +124,11 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       it "blank date_start" do
         user = create(:user)
         event = build(:event)
-        session[:user_id] = user.id
 
         post :create, params: {
           date_start: nil,
-          date_finish: event.date_finish
+          date_finish: event.date_finish,
+          token: user.token
         }
 
         body = JSON.parse(response.body)
@@ -142,11 +141,11 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       it "blank date_finish" do
         user = create(:user)
         event = build(:event)
-        session[:user_id] = user.id
 
         post :create, params: {
           date_start: event.date_start,
-          date_finish: nil
+          date_finish: nil,
+          token: user.token
         }
 
         body = JSON.parse(response.body)
@@ -164,11 +163,11 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         new_name = "New Name"
         user = create(:user)
         event = create(:event, user_id: user.id)
-        session[:user_id] = user.id
 
         put :update, params: {
           id: event.id,
-          name: new_name
+          name: new_name,
+          token: user.token
         }
         event.reload
 
@@ -181,11 +180,12 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       new_description = "new Description"
       user = create(:user)
       event = create(:event, user_id: user.id)
-      session[:user_id] = user.id
+
       put :update, params: {
           id: event.id,
           name: new_name,
-          description: new_description
+          description: new_description,
+          token: user.token
       }
       body = JSON.parse(response.body)
 
@@ -198,11 +198,11 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       it "blank date_start" do
         user = create(:user)
         event = create(:event, user_id: user.id)
-        session[:user_id] = user.id
 
         put :update, params: {
           id: event.id,
-          date_start: nil
+          date_start: nil,
+          token: user.token
         }
 
         body = JSON.parse(response.body)
@@ -215,12 +215,11 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       it "blank date_finish" do
         user = create(:user)
         event = create(:event, user_id: user.id)
-        session[:user_id] = user.id
 
         put :update, params: {
           id: event.id,
-          user_id: user.id,
-          date_finish: nil
+          date_finish: nil,
+          token: user.token
         }
 
         body = JSON.parse(response.body)
@@ -236,11 +235,11 @@ RSpec.describe Api::V1::EventsController, type: :controller do
     it "destroys the requested user" do
       user = create(:user)
       event = create(:event, user_id: user.id)
-      session[:user_id] = user.id
 
       expect {
         delete :destroy, params: {
-          id: event.id
+          id: event.id,
+          token: user.token
         }
       }.to change(Event, :count).by(-1)
     end
@@ -248,10 +247,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
     it "returnes 200 status with message" do
       user = create(:user)
       event = create(:event, user_id: user.id)
-      session[:user_id] = user.id
 
       delete :destroy, params: {
-        id: event.id
+        id: event.id,
+        token: user.token
       }
 
       expect(response.status).to eq(200)

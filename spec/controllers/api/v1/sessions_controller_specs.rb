@@ -11,8 +11,11 @@ RSpec.describe Api::V1::SessionsController, type: :controller do
             "password": user.password
         }
 
+        body = JSON.parse(response.body)
+
         expect(response).to have_http_status(200)
-        expect(response.body).to eq(I18n.t("confirms.user.logged_in"))
+        expect(body["message"]).to eq(I18n.t("confirms.user.logged_in"))
+        expect(body["token"]).to eq(user.token)
       end
     end
 
@@ -39,45 +42,6 @@ RSpec.describe Api::V1::SessionsController, type: :controller do
 
         expect(response).to have_http_status(401)
         expect(response.body).to eq(I18n.t("errors.user.wrong_credentials"))
-      end
-    end
-
-    context "Another user logged in" do
-      it "returns status 403 and message" do
-        user1 = create(:user)
-        user2 = create(:user)
-        session[:user_id] = user1.id
-        post :create, params: {
-            "email": user2.email,
-            "password": user2.password
-        }
-
-        expect(response).to have_http_status(403)
-        expect(response.body).to eq(I18n.t("errors.user.login"))
-      end
-    end
-  end
-
-  describe "GET #destroy (/v1/logout)" do
-    context "User is logged in" do
-      it "returns status 200 and message" do
-        user = create(:user)
-        session[:user_id] = user.id
-
-        get :destroy
-
-        expect(response).to have_http_status(200)
-        expect(response.body).to eq(I18n.t("confirms.user.logged_out"))
-      end
-    end
-
-    context "User is not logged in" do
-      it "returns status 403 and message" do
-
-        get :destroy
-
-        expect(response).to have_http_status(403)
-        expect(response.body).to eq(I18n.t("errors.user.logout"))
       end
     end
   end

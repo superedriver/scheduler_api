@@ -13,22 +13,15 @@ module Api::V1
         if user && user.authenticate(params[:password])
           # Save the user id inside the browser cookie. This is how we keep the user
           # logged in when they navigate around our website.
-          session[:user_id] = user.id
-          render json: I18n.t("confirms.user.logged_in")
+          render json: {
+              "message": I18n.t("confirms.user.logged_in"),
+              "token": user.token
+          }
+
         else
         # If user's login doesn't work, send them back to the login form.
           render json: I18n.t("errors.user.wrong_credentials"), status: 401
         end
-      end
-    end
-
-    # GET /v1/logout
-    def destroy
-      if current_user
-        session[:user_id] = nil
-        render json: I18n.t("confirms.user.logged_out")
-      else
-        render json: I18n.t("errors.user.logout"), status: 403
       end
     end
   end

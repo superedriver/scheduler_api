@@ -16,7 +16,6 @@ module Api::V1
         @user = User.new(user_params)
 
         if @user.save
-          session[:user_id] = @user.id
           render json: @user, status: :created, location: v1_users_path
         else
           render json: @user.errors, status: :unprocessable_entity
@@ -51,7 +50,7 @@ module Api::V1
 
       # Only allow a trusted parameter "white list" through.
       def user_params
-        params.require(:user).permit(:name, :email, :password, :password_confirmation)
+        params.require(:user).permit(:name, :email, :password, :password_confirmation, :token)
       end
   end
 end
