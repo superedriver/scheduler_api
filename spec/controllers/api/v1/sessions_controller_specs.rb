@@ -28,8 +28,10 @@ RSpec.describe Api::V1::SessionsController, type: :controller do
             "password": user.password
         }
 
+        body = JSON.parse(response.body)
+
         expect(response).to have_http_status(401)
-        expect(response.body).to eq(I18n.t("errors.user.wrong_credentials"))
+        expect(body["message"]).to eq(I18n.t("errors.user.wrong_credentials"))
       end
 
       it "password" do
@@ -40,8 +42,9 @@ RSpec.describe Api::V1::SessionsController, type: :controller do
             "password": "wrong_password"
         }
 
+        body = JSON.parse(response.body)
         expect(response).to have_http_status(401)
-        expect(response.body).to eq(I18n.t("errors.user.wrong_credentials"))
+        expect(body["message"]).to eq(I18n.t("errors.user.wrong_credentials"))
       end
     end
   end

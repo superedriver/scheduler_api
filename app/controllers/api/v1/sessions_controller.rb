@@ -20,7 +20,9 @@ module Api::V1
 
         else
         # If user's login doesn't work, send them back to the login form.
-          render json: I18n.t("errors.user.wrong_credentials"), status: 401
+          render json: {
+              "message": I18n.t("errors.user.wrong_credentials")
+          }, status: 401
         end
       end
     end
