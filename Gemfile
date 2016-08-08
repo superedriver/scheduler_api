@@ -31,3 +31,5 @@ gem 'rack-attack', '~> 4.4', '>= 4.4.1'
 gem 'bcrypt', '~> 3.1', '>= 3.1.11'
 
 gem "codeclimate-test-reporter", group: :test, require: nil
+
+gem 'rails_12factor', '~> 0.0.3', group: :production

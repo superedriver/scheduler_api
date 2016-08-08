@@ -124,6 +124,11 @@ GEM
       nokogiri (~> 1.6.0)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
+    rails_12factor (0.0.3)
+      rails_serve_static_assets
+      rails_stdout_logging
+    rails_serve_static_assets (0.0.5)
+    rails_stdout_logging (0.0.5)
     railties (5.0.0)
       actionpack (= 5.0.0)
       activesupport (= 5.0.0)
@@ -196,6 +201,7 @@ DEPENDENCIES
   rack-attack (~> 4.4, >= 4.4.1)
   rack-cors (~> 0.4.0)
   rails (~> 5.0.0)
+  rails_12factor (~> 0.0.3)
   rspec-rails (~> 3.4, >= 3.4.2)
   spring
   spring-watcher-listen (~> 2.0.0)
