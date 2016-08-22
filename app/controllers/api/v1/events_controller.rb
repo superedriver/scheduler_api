@@ -19,7 +19,7 @@ module Api::V1
       @user = current_user
       @event = @user.events.new(event_params)
       if @event.save
-        render json: @event, status: :created, location: v1_event_path(@event)
+        render json: @event, status: :created, location: api_v1_event_path(@event)
       else
         render json: @event.errors, status: :unprocessable_entity
       end

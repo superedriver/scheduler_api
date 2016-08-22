@@ -24,3 +24,7 @@ config/database.yml
 config/secret.yml
 
 /.idea
+
+.ruby-gemset
+.ruby-version
+.gitignore

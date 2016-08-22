@@ -16,7 +16,7 @@ module Api::V1
         @user = User.new(user_params)
 
         if @user.save
-          render json: @user, status: :created, location: v1_users_path
+          render json: @user, status: :created, location: api_v1_users_path
         else
           render json: @user.errors, status: :unprocessable_entity
         end
