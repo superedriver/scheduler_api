@@ -20,6 +20,7 @@ en:
               blank: "You should enter the begin data of event!"
             date_finish:
               blank: "You should enter the end data of event!"
+              not_greater: "Date_finish must be greater than date_start!"
             user_id:
               blank: "The event has not got the user!"
   errors:
