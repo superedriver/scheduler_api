@@ -26,6 +26,24 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "email to downcase" do
+    it "creating user" do
+      test_email = "EmaIl@GmaIl.com"
+      user = build(:user,
+        email: test_email)
+      user.save
+      expect(user.email).to eq(test_email.downcase)
+    end
+
+    it "updatiing user" do
+      test_email = "EmaIl@GmaIl.com"
+      user = create(:user)
+      user.email = test_email
+      user.save
+      expect(user.email).to eq(test_email.downcase)
+    end
+  end
+
   describe "validations" do
     describe "create user" do
       context "#email" do

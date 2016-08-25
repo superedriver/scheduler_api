@@ -10,6 +10,7 @@ class User < ApplicationRecord
   validates :password, confirmation: true
   validates :password_confirmation, presence: true
 
+  before_save { self.email = email.downcase }
   before_create :create_token
 
   def User.new_token

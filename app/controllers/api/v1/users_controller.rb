@@ -3,12 +3,12 @@ module Api::V1
     before_action :set_user, only: [:show, :update, :destroy]
     skip_before_action :authorize, only: [:create]
 
-    # GET /v1/users
+    # GET api/v1/users
     def show
       render json: @user
     end
 
-    # POST /v1/users (/registration)
+    # POST api/v1/users (/registration)
     def create
       if current_user
         render json: I18n.t("errors.user.login"), status: 403
@@ -23,7 +23,7 @@ module Api::V1
       end
     end
 
-    # PATCH/PUT /v1/users
+    # PATCH/PUT api/v1/users
     def update
       if @user.update(user_params)
         render json: @user
@@ -32,7 +32,7 @@ module Api::V1
       end
     end
 
-    # DELETE /v1/users/1
+    # DELETE api/v1/users/1
     def destroy
       @user.destroy
       render json: I18n.t("confirms.user.success_destroyed")
