@@ -2,29 +2,13 @@ require 'rails_helper'
 
 RSpec.describe Api::V1::EventsController, type: :controller do
 
-  before(:each) { request.headers['Content-Type'] = "application/json" }
-
-  def self.returns_401_when_not_authorized(*actions)
-    actions.each do |action|
-      it "#{action} returns 401 when not authorized" do
-        event = create(:event)
-        verb = if action == :update
-                 "PATCH"
-               elsif action == :destroy
-                 "DELETE"
-               elsif action == :create
-                 "POST"
-               else
-                 "GET"
-               end
-
-        process action, verb, id: event.id
-        expect(response).to have_http_status(401)
-        expect(response.body).to eq(I18n.t("errors.user.non_authorized"))
-      end
-    end
+  describe 'user is not authorized' do
+    it_behaves_like 'user is not authorized', :get, :index
+    it_behaves_like 'user is not authorized', :get, :show
+    it_behaves_like 'user is not authorized', :patch, :update
+    it_behaves_like 'user is not authorized', :delete, :destroy
+    it_behaves_like 'user is not authorized', :post, :create
   end
-  returns_401_when_not_authorized :index, :show, :update, :destroy, :create
 
   describe "GET #index" do
     it "return events if they exist" do
@@ -88,8 +72,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
 
         expect {
           post :create, params: {
-            date_start: event.date_start,
-            date_finish: event.date_finish,
+            event: {
+              date_start: event.date_start,
+              date_finish: event.date_finish
+            },
             token: user.token
           }
         }.to change(Event, :count).by(1)
@@ -106,10 +92,12 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         )
 
         post :create, params: {
-          name: event.name,
-          description: event.description,
-          date_start: event.date_start,
-          date_finish: event.date_finish,
+          event: {
+            name: event.name,
+            description: event.description,
+            date_start: event.date_start,
+            date_finish: event.date_finish
+          },
           token: user.token
         }
 
@@ -126,8 +114,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         event = build(:event)
 
         post :create, params: {
-          date_start: nil,
-          date_finish: event.date_finish,
+          event: {
+            date_start: nil,
+            date_finish: event.date_finish
+          },
           token: user.token
         }
 
@@ -143,8 +133,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         event = build(:event)
 
         post :create, params: {
-          date_start: event.date_start,
-          date_finish: nil,
+          event: {
+            date_start: event.date_start,
+            date_finish: nil
+          },
           token: user.token
         }
 
@@ -165,8 +157,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         event = create(:event, user_id: user.id)
 
         put :update, params: {
+          event: {
+            name: new_name
+          },
           id: event.id,
-          name: new_name,
           token: user.token
         }
         event.reload
@@ -182,10 +176,12 @@ RSpec.describe Api::V1::EventsController, type: :controller do
       event = create(:event, user_id: user.id)
 
       put :update, params: {
-          id: event.id,
+        event: {
           name: new_name,
-          description: new_description,
-          token: user.token
+          description: new_description
+        },
+        id: event.id,
+        token: user.token
       }
       body = JSON.parse(response.body)
 
@@ -200,8 +196,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         event = create(:event, user_id: user.id)
 
         put :update, params: {
+          event: {
+            date_start: nil
+          },
           id: event.id,
-          date_start: nil,
           token: user.token
         }
 
@@ -217,8 +215,10 @@ RSpec.describe Api::V1::EventsController, type: :controller do
         event = create(:event, user_id: user.id)
 
         put :update, params: {
+          event: {
+            date_finish: nil
+          },
           id: event.id,
-          date_finish: nil,
           token: user.token
         }
 

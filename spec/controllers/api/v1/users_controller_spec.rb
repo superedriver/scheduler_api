@@ -2,25 +2,11 @@ require "rails_helper"
 
 RSpec.describe Api::V1::UsersController, type: :controller do
 
-  def self.returns_401_when_not_authorized(*actions)
-    actions.each do |action|
-      it "#{action} returns 401 when when not authorized" do
-        verb = if action == :update
-                 "PATCH"
-               elsif action == :destroy
-                 "DELETE"
-               else
-                 "GET"
-               end
-
-        process action, verb
-        expect(response).to have_http_status(401)
-        expect(response.body).to eq(I18n.t("errors.user.non_authorized"))
-      end
-    end
+  describe 'user is not authorized' do
+    it_behaves_like 'user is not authorized', :get, :show
+    it_behaves_like 'user is not authorized', :patch, :update
+    it_behaves_like 'user is not authorized', :delete, :destroy
   end
-
-  returns_401_when_not_authorized :show, :update, :destroy
 
   describe "GET #show" do
     it "return user if user exist" do
